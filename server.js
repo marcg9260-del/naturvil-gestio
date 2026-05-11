@@ -9,6 +9,7 @@ const upload = multer({ dest: 'uploads/' });
 
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] }));
 app.use(express.json({ limit: '50mb' }));
+app.get('/', (req, res) => {res.sendFile(__dirname + '/public/index.html');});
 app.use(express.static('public'));
 
 const ODOO_URL = process.env.ODOO_URL || 'https://naturvil.odoo.com';
