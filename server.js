@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
-app.use(cors());
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
