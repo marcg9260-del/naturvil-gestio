@@ -1,31 +1,59 @@
-export default async (req, context) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      }
-    });
-  }
-  try {
-    const body = await req.text();
-    const response = await fetch('https://hook.eu1.make.com/l4s5upe6u4air211dtylehqour4chjj', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: body
-    });
-    const text = await response.text();
-    return new Response(text, {
-      status: response.status,
-      headers: { 'Access-Control-Allow-Origin': '*' }
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' }
-    });
-  }
+const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/pw8mbn4mo9e202gfv7pymhehuvwwups8";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
 };
 
-export const config = { path: '/api/make' };
+exports.handler = async function (event) {
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: "OK",
+    };
+  }
+
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: corsHeaders,
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
+  }
+
+  try {
+    const body = event.body || "{}";
+
+    const response = await fetch(MAKE_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body,
+    });
+
+    const text = await response.text();
+
+    return {
+      statusCode: response.status,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
+      body: text || JSON.stringify({ ok: true }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: error.message,
+      }),
+    };
+  }
+};
