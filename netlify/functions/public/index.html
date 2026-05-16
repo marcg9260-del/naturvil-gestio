@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naturvil Gestió · Facturació Intel·ligent</title>
+  <style>
+    :root {
+      --bg: #0f0f0d;
+      --surface: #171713;
+      --surface-2: #22221d;
+      --surface-3: #2d2d25;
+      --border: #34342b;
+      --text: #f0ede6;
+      --muted: #a9a394;
+      --accent: #c8f060;
+      --accent-2: #7fbf4d;
+      --danger: #ff6b6b;
+      --warning: #f6c85f;
+      --success: #60f0a0;
+      --blue: #7aa7ff;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(200, 240, 96, 0.10), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(127, 191, 77, 0.10), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+
+    aside {
+      border-right: 1px solid var(--border);
+      background: rgba(23, 23, 19, 0.94);
+      backdrop-filter: blur(14px);
+      padding: 24px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #102000;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      box-shadow: 0 0 26px rgba(200, 240, 96, 0.22);
+    }
+    .brand h1 { font-size: 1.2rem; margin: 0; letter-spacing: -0.03em; }
+    .brand span { color: var(--muted); font-size: 0.78rem; }
+
+    .nav-title { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 10px 8px; }
+    .nav-btn {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: 160ms ease;
+    }
+    .nav-btn:hover { background: var(--surface-2); color: var(--text); }
+    .nav-btn.active {
+      color: var(--accent);
+      background: rgba(200, 240, 96, 0.08);
+      border-color: rgba(200, 240, 96, 0.22);
+    }
+    .nav-icon { width: 22px; text-align: center; }
+
+    main { padding: 28px; overflow: hidden; }
+    header.top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+    .title-block h2 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -0.05em; }
+    .title-block p { margin: 8px 0 0; color: var(--muted); max-width: 780px; }
+    .status-card {
+      min-width: 250px;
+      border: 1px solid var(--border);
+      background: rgba(23, 23, 19, 0.82);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+    .status-line { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.85rem; }
+    .status-dot {
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 18px var(--warning); }
+    .dot.ok { background: var(--success); box-shadow: 0 0 18px var(--success); }
+    .dot.bad { background: var(--danger); box-shadow: 0 0 18px var(--danger); }
+
+    .grid { display: grid; gap: 18px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--border);
+      background: rgba(23, 23, 19, 0.86);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 8px; letter-spacing: -0.03em; }
+    .card p.help { margin: 0 0 16px; color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+
+    .metric { padding: 18px; }
+    .metric strong { display: block; font-size: 1.8rem; letter-spacing: -0.05em; }
+    .metric span { color: var(--muted); font-size: 0.85rem; }
+
+    label { display: block; margin: 12px 0 6px; color: var(--muted); font-size: 0.86rem; }
+    input, textarea, select {
+      width: 100%;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 12px 13px;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+    textarea { min-height: 105px; resize: vertical; }
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(200, 240, 96, 0.6);
+      box-shadow: 0 0 0 4px rgba(200, 240, 96, 0.08);
+    }
+
+    .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .row.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .btn {
+      border: 1px solid transparent;
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 11px 15px;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+    }
+    .btn:hover { transform: translateY(-1px); background: var(--surface-3); }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #102000; font-weight: 800; }
+    .btn.danger { background: rgba(255, 107, 107, 0.10); color: var(--danger); border-color: rgba(255, 107, 107, 0.25); }
+    .btn.ghost { background: transparent; border-color: var(--border); color: var(--muted); }
+    .btn.full { width: 100%; }
+    .btn.recording { background: rgba(255, 107, 107, 0.16); color: var(--danger); border-color: rgba(255, 107, 107, 0.45); }
+
+    .section { display: none; animation: fade 160ms ease; }
+    .section.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .line-items { display: grid; gap: 10px; margin-top: 8px; }
+    .line-item {
+      display: grid;
+      grid-template-columns: 1.5fr 0.55fr 0.75fr 0.9fr 42px;
+      gap: 8px;
+      align-items: end;
+      padding: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+    .line-item label { margin-top: 0; }
+
+    .dropzone {
+      border: 1.5px dashed rgba(200, 240, 96, 0.35);
+      background: rgba(200, 240, 96, 0.04);
+      border-radius: 16px;
+      padding: 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .dropzone input { display: none; }
+    .preview-list { display: grid; gap: 8px; margin-top: 12px; }
+    .preview-item {
+      display: flex; justify-content: space-between; gap: 10px; align-items: center;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .log {
+      background: #0a0a08;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 180px;
+      max-height: 360px;
+      overflow-y: auto;
+      font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+      color: #d7d2c4;
+      white-space: pre-wrap;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.76rem;
+      background: rgba(255,255,255,0.03);
+    }
+    .pill.ok { color: var(--success); border-color: rgba(96,240,160,.25); }
+    .pill.warn { color: var(--warning); border-color: rgba(246,200,95,.25); }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      max-width: 380px;
+      z-index: 99;
+      display: none;
+    }
+    .toast.show { display: block; animation: fade 160ms ease; }
+    .toast strong { display: block; margin-bottom: 4px; }
+    .toast small { color: var(--muted); }
+
+    .quick-actions { display: grid; gap: 10px; }
+    .quick-actions .btn { justify-content: flex-start; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      main { padding: 18px; }
+      header.top { flex-direction: column; }
+      .status-card { width: 100%; }
+      .grid.two, .grid.three, .row, .row.three, .row.four { grid-template-columns: 1fr; }
+      .line-item { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="brand-mark">N</div>
+        <div>
+          <h1>Naturvil</h1>
+          <span>Gestió intel·ligent</span>
+        </div>
+      </div>
+
+      <div class="nav-title">Principal</div>
+      <button class="nav-btn active" data-section="dashboard"><span class="nav-icon">📊</span>Resum</button>
+      <button class="nav-btn" data-section="assistant"><span class="nav-icon">🤖</span>Ordre intel·ligent</button>
+      <button class="nav-btn" data-section="voice"><span class="nav-icon">🎙️</span>Notes de veu</button>
+
+      <div class="nav-title">Odoo</div>
+      <button class="nav-btn" data-section="clients"><span class="nav-icon">👤</span>Clients</button>
+      <button class="nav-btn" data-section="invoices"><span class="nav-icon">🧾</span>Factures</button>
+      <button class="nav-btn" data-section="quotes"><span class="nav-icon">📄</span>Pressupostos</button>
+      <button class="nav-btn" data-section="recurring"><span class="nav-icon">🔁</span>Recurrents</button>
+      <button class="nav-btn" data-section="expenses"><span class="nav-icon">📸</span>Tiquets i despeses</button>
+
+      <div class="nav-title">Control</div>
+      <button class="nav-btn" data-section="materials"><span class="nav-icon">📦</span>Materials</button>
+      <button class="nav-btn" data-section="settings"><span class="nav-icon">⚙️</span>Configuració</button>
+      <button class="nav-btn" data-section="logs"><span class="nav-icon">🧪</span>Proves i registre</button>
+    </aside>
+
+    <main>
+      <header class="top">
+        <div class="title-block">
+          <h2 id="pageTitle">Resum de gestió</h2>
+          <p id="pageSubtitle">Panell central per crear clients, factures, pressupostos, despeses i automatitzacions enviant dades a Make i Odoo.</p>
+        </div>
+        <div class="status-card">
+          <div class="status-line"><span>Connexió Make</span><span class="status-dot"><span id="makeDot" class="dot"></span><span id="makeStatus">pendent</span></span></div>
+          <div class="status-line" style="margin-top: 8px;"><span>Endpoint</span><span id="endpointLabel">/.netlify/functions/make-proxy</span></div>
+          <div class="btns" style="margin-top: 12px;"><button class="btn ghost full" onclick="testConnection()">Provar connexió</button></div>
+        </div>
+      </header>
+
+      <section id="dashboard" class="section active">
+        <div class="grid three">
+          <div class="card metric"><strong id="sentCount">0</strong><span>accions enviades aquesta sessió</span></div>
+          <div class="card metric"><strong id="draftCount">0</strong><span>esborranys creats o sol·licitats</span></div>
+          <div class="card metric"><strong id="fileCount">0</strong><span>fitxers preparats per enviar</span></div>
+        </div>
+
+        <div class="grid two" style="margin-top: 18px;">
+          <div class="card">
+            <h3>Accions ràpides</h3>
+            <p class="help">Comença pel més útil: crear factura, registrar tiquet o enviar una ordre intel·ligent.</p>
+            <div class="quick-actions">
+              <button class="btn primary" onclick="go('invoices')">🧾 Crear factura</button>
+              <button class="btn" onclick="go('expenses')">📸 Pujar tiquet o factura de compra</button>
+              <button class="btn" onclick="go('voice')">🎙️ Gravar nota de veu</button>
+              <button class="btn" onclick="go('assistant')">🤖 Escriure ordre intel·ligent</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Flux correcte del sistema</h3>
+            <p class="help">Aquesta pàgina no parla directament amb Odoo. Envia dades a Make mitjançant una funció de Netlify. Make interpreta l’acció i crea el registre corresponent a Odoo.</p>
+            <div class="log">Naturvil Gestió → /.netlify/functions/make-proxy → Webhook Make → Odoo
+
+Accions disponibles:
+- crear_client
+- crear_factura
+- crear_pressupost
+- crear_despesa
+- crear_recurrent
+- ordre_intelligent
+- nota_veu</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="assistant" class="section">
+        <div class="card">
+          <h3>Ordre intel·ligent</h3>
+          <p class="help">Escriu com parlaries. Make/Claude haurà d’interpretar aquesta ordre i transformar-la en client, factura, pressupost, despesa o tasca.</p>
+          <label>Ordre</label>
+          <textarea id="smartCommand" placeholder="Exemple: Fes factura a Comunitat Carme Laforet pel manteniment d’abril, total 430 € IVA inclòs. Deixa-la com a esborrany."></textarea>
+          <div class="row three">
+            <div>
+              <label>Tipus preferent</label>
+              <select id="smartType">
+                <option value="auto">Detectar automàticament</option>
+                <option value="crear_factura">Factura</option>
+                <option value="crear_pressupost">Pressupost</option>
+                <option value="crear_client">Client</option>
+                <option value="crear_despesa">Despesa</option>
+                <option value="crear_recurrent">Factura recurrent</option>
+              </select>
+            </div>
+            <div>
+              <label>Mode</label>
+              <select id="smartMode">
+                <option value="draft">Crear esborrany</option>
+                <option value="review">Només preparar per revisar</option>
+              </select>
+            </div>
+            <div>
+              <label>Prioritat</label>
+              <select id="smartPriority">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+          <div class="btns">
+            <button class="btn primary" onclick="sendSmartCommand()">Enviar ordre a Make</button>
+            <button class="btn ghost" onclick="fillExample('smart')">Exemple</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="voice" class="section">
+        <div class="grid two">
+          <div class="card">
+            <h3>Nota de veu</h3>
+            <p class="help">Grava una nota de veu des del navegador. S’enviarà a Make com a fitxer d’àudio en base64. Make haurà de transcriure-la i passar-la a Claude/Odoo.</p>
+            <div class="btns">
+              <button id="recordBtn" class="btn primary" onclick="toggleRecording()">🎙️ Començar gravació</button>
+              <button class="btn ghost" onclick="clearRecording()">Esborrar gravació</button>
+            </div>
+            <p class="help" id="recordStatus" style="margin-top: 12px;">Preparat per gravar.</p>
+            <audio id="audioPreview" controls style="width: 100%; display: none; margin-top: 12px;"></audio>
+            <label>Comentari opcional</label>
+            <textarea id="voiceComment" placeholder="Exemple: això hauria de ser una factura, no un pressupost."></textarea>
+            <div class="btns">
+              <button class="btn primary" onclick="sendVoiceNote()">Enviar nota de veu</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Com has de parlar</h3>
+            <p class="help">Com més clar siguis, menys revisions hauràs de fer després.</p>
+            <div class="log">Exemples:
+
+“Fes factura a Comunitat Carme Laforet pel manteniment de jardineria del mes d’abril, total 430 euros IVA inclòs.”
+
+“Crea pressupost per Albert d’Alpicat: tanca composite 10,30 metres, accés difícil, formigó pels postes, mà d’obra i retirada de tanca antiga.”
+
+“Registra despesa de Bioland de 86,40 euros amb IVA per compra de grava decorativa.”</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="clients" class="section">
+        <div class="card">
+          <h3>Crear client</h3>
+          <p class="help">Alta ràpida de client a Odoo. Es recomana que Make busqui duplicats abans de crear-lo.</p>
+          <div class="row two">
+            <div><label>Nom client *</label><input id="clientName" placeholder="Exemple: Comunitat Carme Laforet" /></div>
+            <div><label>Telèfon</label><input id="clientPhone" placeholder="600000000" /></div>
+          </div>
+          <div class="row two">
+            <div><label>Email</label><input id="clientEmail" placeholder="client@email.com" /></div>
+            <div><label>Població</label><input id="clientCity" placeholder="Lleida, Alpicat, Miralcamp..." /></div>
+          </div>
+          <label>Adreça</label><input id="clientAddress" placeholder="Carrer, número, pis..." />
+          <label>Notes internes</label><textarea id="clientNotes" placeholder="Dades útils: administrador, president comunitat, horaris, accés..."></textarea>
+          <div class="btns">
+            <button class="btn primary" onclick="createClient()">Crear client a Odoo</button>
+            <button class="btn ghost" onclick="fillExample('client')">Exemple</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="invoices" class="section">
+        <div class="card">
+          <h3>Crear factura esborrany</h3>
+          <p class="help">Envia una factura estructurada a Make. Recomanat: crear sempre esborrany a Odoo i validar-la després.</p>
+          <div class="row three">
+            <div><label>Client *</label><input id="invoiceClient" placeholder="Nom exacte o aproximat" /></div>
+            <div><label>Data factura</label><input id="invoiceDate" type="date" /></div>
+            <div><label>IVA</label><select id="invoiceVat"><option value="21">21%</option><option value="10">10%</option><option value="0">0%</option></select></div>
+          </div>
+          <label>Descripció general</label><textarea id="invoiceDescription" placeholder="Exemple: Manteniment de jardineria mensual corresponent al mes d’abril."></textarea>
+          <h3 style="margin-top: 18px;">Línies de factura</h3>
+          <div id="invoiceLines" class="line-items"></div>
+          <div class="btns">
+            <button class="btn" onclick="addLine('invoiceLines')">+ Afegir línia</button>
+            <button class="btn ghost" onclick="fillExample('invoice')">Exemple comunitat</button>
+          </div>
+          <div class="row three" style="margin-top: 12px;">
+            <div><label>Total IVA inclòs opcional</label><input id="invoiceTotalIncl" type="number" step="0.01" placeholder="430" /></div>
+            <div><label>Forma</label><select id="invoiceMode"><option value="draft">Esborrany</option><option value="review">Només revisar</option></select></div>
+            <div><label>Categoria</label><select id="invoiceCategory"><option value="manteniment">Manteniment</option><option value="obra">Obra / instal·lació</option><option value="puntual">Servei puntual</option></select></div>
+          </div>
+          <div class="btns">
+            <button class="btn primary" onclick="createInvoice()">Crear factura esborrany</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="quotes" class="section">
+        <div class="card">
+          <h3>Crear pressupost</h3>
+          <p class="help">Per enviar una proposta estructurada a Odoo. Pots incloure comentaris comercials i condicions de pagament.</p>
+          <div class="row two">
+            <div><label>Client *</label><input id="quoteClient" placeholder="Client" /></div>
+            <div><label>Ubicació obra</label><input id="quoteLocation" placeholder="Alpicat, Soses, Miralcamp..." /></div>
+          </div>
+          <label>Títol del pressupost</label><input id="quoteTitle" placeholder="Instal·lació de gespa artificial / Reforma de jardí / Manteniment comunitat" />
+          <label>Text introductori</label><textarea id="quoteIntro" placeholder="Explicació breu del que es farà i del valor de la intervenció."></textarea>
+          <h3 style="margin-top: 18px;">Línies del pressupost</h3>
+          <div id="quoteLines" class="line-items"></div>
+          <div class="btns">
+            <button class="btn" onclick="addLine('quoteLines')">+ Afegir línia</button>
+            <button class="btn ghost" onclick="fillExample('quote')">Exemple jardineria</button>
+            <button class="btn primary" onclick="createQuote()">Crear pressupost</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="recurring" class="section">
+        <div class="card">
+          <h3>Factura recurrent</h3>
+          <p class="help">Per comunitats, manteniments mensuals, residències o clients fixes. Make/Odoo haurà de crear o programar la recurrència.</p>
+          <div class="row three">
+            <div><label>Client *</label><input id="recClient" placeholder="Comunitat Carme Laforet" /></div>
+            <div><label>Import total IVA inclòs</label><input id="recTotal" type="number" step="0.01" placeholder="430" /></div>
+            <div><label>IVA</label><select id="recVat"><option value="21">21%</option><option value="10">10%</option><option value="0">0%</option></select></div>
+          </div>
+          <div class="row three">
+            <div><label>Periodicitat</label><select id="recFrequency"><option value="monthly">Mensual</option><option value="quarterly">Trimestral</option><option value="yearly">Anual</option></select></div>
+            <div><label>Dia de facturació</label><input id="recDay" type="number" min="1" max="31" value="30" /></div>
+            <div><label>Inici</label><input id="recStart" type="date" /></div>
+          </div>
+          <label>Concepte</label><input id="recConcept" value="Manteniment de jardineria mensual" />
+          <label>Notes</label><textarea id="recNotes" placeholder="Exemple: generar com a esborrany i revisar abans d’enviar."></textarea>
+          <div class="btns"><button class="btn primary" onclick="createRecurring()">Crear recurrència</button></div>
+        </div>
+      </section>
+
+      <section id="expenses" class="section">
+        <div class="grid two">
+          <div class="card">
+            <h3>Tiquets i factures de compra</h3>
+            <p class="help">Puja fotos o PDFs. S’enviaran a Make en base64 perquè els pugui llegir amb OCR/IA i crear despesa o factura de proveïdor en esborrany.</p>
+            <label>Proveïdor</label><input id="expenseVendor" placeholder="Bioland, Bellmunt, gasolinera..." />
+            <div class="row three">
+              <div><label>Data</label><input id="expenseDate" type="date" /></div>
+              <div><label>Import total</label><input id="expenseTotal" type="number" step="0.01" placeholder="0.00" /></div>
+              <div><label>Tipus</label><select id="expenseType"><option value="despesa">Despesa</option><option value="compra_material">Compra material</option><option value="factura_proveedor">Factura proveïdor</option></select></div>
+            </div>
+            <label>Categoria</label>
+            <select id="expenseCategory">
+              <option value="materials">Materials</option>
+              <option value="combustible">Combustible</option>
+              <option value="maquinaria">Maquinària / eines</option>
+              <option value="gestoria">Gestoria / administració</option>
+              <option value="altres">Altres</option>
+            </select>
+            <label class="dropzone" for="expenseFiles">📎 Clica per pujar fotos/PDF de tiquets o factures</label>
+            <input id="expenseFiles" type="file" multiple accept="image/*,.pdf" onchange="handleFiles('expenseFiles','expensePreview')" />
+            <div id="expensePreview" class="preview-list"></div>
+            <label>Comentari</label><textarea id="expenseNotes" placeholder="Exemple: compra per obra de Miralcamp / material per stock / combustible furgoneta."></textarea>
+            <div class="btns"><button class="btn primary" onclick="createExpense()">Enviar despesa a Odoo</button></div>
+          </div>
+
+          <div class="card">
+            <h3>Criteri recomanat</h3>
+            <p class="help">No tot ha d’anar a inventari. Primer crea despeses esborrany i després ja automatitzarem inventari per materials importants.</p>
+            <div class="log">Despesa simple:
+- gasoil
+- restaurant
+- gestor
+- petites eines
+
+Compra material:
+- grava
+- gespa artificial
+- geotèxtil
+- travesses
+- reg
+
+Inventari real:
+- només quan tinguis productes i unitats ben configurades a Odoo.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="materials" class="section">
+        <div class="card">
+          <h3>Entrada ràpida de materials</h3>
+          <p class="help">Per registrar materials habituals i enviar-los a Make/Odoo com a productes, compra o control intern.</p>
+          <div class="row four">
+            <div><label>Material</label><input id="matName" placeholder="Sauló, geotèxtil, travessa..." /></div>
+            <div><label>Unitat</label><input id="matUnit" placeholder="m², m³, ud, ml" /></div>
+            <div><label>Preu compra</label><input id="matCost" type="number" step="0.01" /></div>
+            <div><label>Preu venda</label><input id="matSale" type="number" step="0.01" /></div>
+          </div>
+          <label>Comentaris</label><textarea id="matNotes" placeholder="IVA inclòs/no inclòs, proveïdor, ús habitual..."></textarea>
+          <div class="btns"><button class="btn primary" onclick="sendMaterial()">Enviar material/producte</button></div>
+        </div>
+      </section>
+
+      <section id="settings" class="section">
+        <div class="card">
+          <h3>Configuració</h3>
+          <p class="help">L’endpoint recomanat és la funció Netlify. No posis claus d’Odoo ni Claude dins aquesta pàgina.</p>
+          <label>Endpoint de connexió</label>
+          <input id="endpointInput" value="/.netlify/functions/make-proxy" />
+          <div class="row two">
+            <div><label>Empresa</label><input id="companyName" value="Naturvil Jardineria i Paisatgisme" /></div>
+            <div><label>IVA per defecte</label><input id="defaultVat" type="number" value="21" /></div>
+          </div>
+          <label>Mode de seguretat</label>
+          <select id="safeMode">
+            <option value="draft" selected>Crear sempre esborranys</option>
+            <option value="review">Només enviar per revisió</option>
+          </select>
+          <div class="btns">
+            <button class="btn primary" onclick="saveSettings()">Desar configuració local</button>
+            <button class="btn ghost" onclick="loadSettings()">Carregar configuració</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="logs" class="section">
+        <div class="card">
+          <h3>Registre tècnic</h3>
+          <p class="help">Aquí veuràs què s’envia a Make i la resposta rebuda. És clau per depurar sense perdre temps.</p>
+          <div class="btns"><button class="btn ghost" onclick="clearLog()">Netejar registre</button></div>
+          <div id="logBox" class="log" style="margin-top: 12px;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"><strong id="toastTitle"></strong><small id="toastMsg"></small></div>
+
+  <script>
+    const state = {
+      endpoint: localStorage.getItem('naturvil_endpoint') || '/.netlify/functions/make-proxy',
+      sent: Number(localStorage.getItem('naturvil_sent') || 0),
+      drafts: Number(localStorage.getItem('naturvil_drafts') || 0),
+      files: 0,
+      mediaRecorder: null,
+      audioChunks: [],
+      audioBlob: null,
+      audioBase64: null,
+    };
+
+    const titles = {
+      dashboard: ['Resum de gestió', 'Panell central per crear clients, factures, pressupostos, despeses i automatitzacions enviant dades a Make i Odoo.'],
+      assistant: ['Ordre intel·ligent', 'Escriu una ordre natural perquè Make/Claude la transformi en acció a Odoo.'],
+      voice: ['Notes de veu', 'Grava indicacions mentre treballes i envia-les perquè es transformin en factures, pressupostos o tasques.'],
+      clients: ['Clients', 'Alta i gestió ràpida de clients a Odoo.'],
+      invoices: ['Factures', 'Creació de factures esborrany a Odoo.'],
+      quotes: ['Pressupostos', 'Creació de pressupostos estructurats per enviar o revisar.'],
+      recurring: ['Factures recurrents', 'Automatització de comunitats i manteniments mensuals.'],
+      expenses: ['Tiquets i despeses', 'Digitalització de compres, tiquets i factures de proveïdor.'],
+      materials: ['Materials', 'Control de productes, materials i preus habituals.'],
+      settings: ['Configuració', 'Configuració local de la pàgina. Les claus sensibles no han d’anar aquí.'],
+      logs: ['Proves i registre', 'Registre tècnic de peticions enviades a Make.'],
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => go(btn.dataset.section));
+      });
+      document.getElementById('invoiceDate').valueAsDate = new Date();
+      document.getElementById('expenseDate').valueAsDate = new Date();
+      document.getElementById('recStart').valueAsDate = new Date();
+      document.getElementById('endpointInput').value = state.endpoint;
+      document.getElementById('endpointLabel').textContent = state.endpoint;
+      updateCounters();
+      addLine('invoiceLines', { concept: 'Manteniment de jardineria mensual', qty: 1, unit: 'ud', price: 355.37 });
+      addLine('quoteLines', { concept: 'Mà d’obra jardineria', qty: 1, unit: 'h', price: 28 });
+      log('Sistema carregat. Endpoint: ' + state.endpoint);
+    });
+
+    function go(section) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === section));
+      document.getElementById(section).classList.add('active');
+      document.getElementById('pageTitle').textContent = titles[section][0];
+      document.getElementById('pageSubtitle').textContent = titles[section][1];
+    }
+
+    function saveSettings() {
+      state.endpoint = document.getElementById('endpointInput').value.trim() || '/.netlify/functions/make-proxy';
+      localStorage.setItem('naturvil_endpoint', state.endpoint);
+      localStorage.setItem('naturvil_company', document.getElementById('companyName').value);
+      localStorage.setItem('naturvil_defaultVat', document.getElementById('defaultVat').value);
+      document.getElementById('endpointLabel').textContent = state.endpoint;
+      toast('Configuració desada', 'La configuració local s’ha actualitzat.');
+      log('Configuració desada: ' + state.endpoint);
+    }
+
+    function loadSettings() {
+      document.getElementById('endpointInput').value = localStorage.getItem('naturvil_endpoint') || '/.netlify/functions/make-proxy';
+      document.getElementById('companyName').value = localStorage.getItem('naturvil_company') || 'Naturvil Jardineria i Paisatgisme';
+      document.getElementById('defaultVat').value = localStorage.getItem('naturvil_defaultVat') || '21';
+      toast('Configuració carregada', 'S’han carregat les dades locals.');
+    }
+
+    function getSettings() {
+      return {
+        company: document.getElementById('companyName')?.value || 'Naturvil Jardineria i Paisatgisme',
+        default_vat: Number(document.getElementById('defaultVat')?.value || 21),
+        safe_mode: document.getElementById('safeMode')?.value || 'draft',
+      };
+    }
+
+    async function sendToMake(action, payload, options = {}) {
+      const body = {
+        action,
+        accio: action,
+        created_at: new Date().toISOString(),
+        source: 'naturvil_gestio_webapp',
+        mode: options.mode || getSettings().safe_mode,
+        settings: getSettings(),
+        payload,
+      };
+
+      log('ENVIANT → ' + JSON.stringify(body, null, 2));
+      try {
+        const response = await fetch(state.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const text = await response.text();
+        state.sent += 1;
+        if (['crear_factura','crear_pressupost','crear_recurrent'].includes(action)) state.drafts += 1;
+        localStorage.setItem('naturvil_sent', state.sent);
+        localStorage.setItem('naturvil_drafts', state.drafts);
+        updateCounters();
+        setStatus(response.ok);
+        log('RESPOSTA ← status ' + response.status + '\n' + (text || '(sense resposta)'));
+        toast(response.ok ? 'Enviat correctament' : 'Resposta amb error', text || ('Status ' + response.status));
+        return { ok: response.ok, status: response.status, text };
+      } catch (error) {
+        setStatus(false);
+        log('ERROR ← ' + error.message);
+        toast('Error de connexió', error.message);
+        return { ok: false, error };
+      }
+    }
+
+    function setStatus(ok) {
+      const dot = document.getElementById('makeDot');
+      const label = document.getElementById('makeStatus');
+      dot.className = 'dot ' + (ok ? 'ok' : 'bad');
+      label.textContent = ok ? 'connectat' : 'error';
+    }
+
+    async function testConnection() {
+      await sendToMake('test_connexio', { message: 'Prova de connexió Naturvil Gestió', test: true }, { mode: 'test' });
+    }
+
+    function createClient() {
+      const name = value('clientName');
+      if (!name) return toast('Falta el nom', 'El nom del client és obligatori.');
+      return sendToMake('crear_client', {
+        name,
+        phone: value('clientPhone'),
+        email: value('clientEmail'),
+        city: value('clientCity'),
+        street: value('clientAddress'),
+        notes: value('clientNotes'),
+        customer_rank: 1,
+      });
+    }
+
+    function createInvoice() {
+      const client = value('invoiceClient');
+      if (!client) return toast('Falta el client', 'Has d’indicar el client de la factura.');
+      return sendToMake('crear_factura', {
+        client,
+        date: value('invoiceDate'),
+        vat: Number(value('invoiceVat') || 21),
+        description: value('invoiceDescription'),
+        lines: getLines('invoiceLines'),
+        total_iva_inclos: numeric('invoiceTotalIncl'),
+        category: value('invoiceCategory'),
+        odoo_move_type: 'out_invoice',
+      }, { mode: value('invoiceMode') });
+    }
+
+    function createQuote() {
+      const client = value('quoteClient');
+      if (!client) return toast('Falta el client', 'Has d’indicar el client del pressupost.');
+      return sendToMake('crear_pressupost', {
+        client,
+        location: value('quoteLocation'),
+        title: value('quoteTitle'),
+        intro: value('quoteIntro'),
+        lines: getLines('quoteLines'),
+      });
+    }
+
+    function createRecurring() {
+      const client = value('recClient');
+      if (!client) return toast('Falta el client', 'Has d’indicar el client recurrent.');
+      return sendToMake('crear_recurrent', {
+        client,
+        total_iva_inclos: numeric('recTotal'),
+        vat: Number(value('recVat') || 21),
+        frequency: value('recFrequency'),
+        invoice_day: Number(value('recDay') || 30),
+        start_date: value('recStart'),
+        concept: value('recConcept'),
+        notes: value('recNotes'),
+      });
+    }
+
+    async function createExpense() {
+      const files = await filesToBase64('expenseFiles');
+      state.files += files.length;
+      updateCounters();
+      return sendToMake('crear_despesa', {
+        vendor: value('expenseVendor'),
+        date: value('expenseDate'),
+        total: numeric('expenseTotal'),
+        type: value('expenseType'),
+        category: value('expenseCategory'),
+        notes: value('expenseNotes'),
+        files,
+        odoo_target: 'expense_or_vendor_bill_draft',
+      });
+    }
+
+    function sendMaterial() {
+      return sendToMake('crear_material_producte', {
+        name: value('matName'),
+        unit: value('matUnit'),
+        cost_price: numeric('matCost'),
+        sale_price: numeric('matSale'),
+        notes: value('matNotes'),
+      });
+    }
+
+    function sendSmartCommand() {
+      const command = value('smartCommand');
+      if (!command) return toast('Falta ordre', 'Escriu una ordre perquè la IA la pugui interpretar.');
+      return sendToMake('ordre_intelligent', {
+        command,
+        preferred_action: value('smartType'),
+        priority: value('smartPriority'),
+      }, { mode: value('smartMode') });
+    }
+
+    async function toggleRecording() {
+      if (state.mediaRecorder && state.mediaRecorder.state === 'recording') return stopRecording();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        state.audioChunks = [];
+        state.mediaRecorder = new MediaRecorder(stream);
+        state.mediaRecorder.ondataavailable = e => state.audioChunks.push(e.data);
+        state.mediaRecorder.onstop = async () => {
+          state.audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
+          state.audioBase64 = await blobToBase64(state.audioBlob);
+          const audioUrl = URL.createObjectURL(state.audioBlob);
+          const audio = document.getElementById('audioPreview');
+          audio.src = audioUrl;
+          audio.style.display = 'block';
+          document.getElementById('recordStatus').textContent = 'Gravació preparada per enviar.';
+          document.getElementById('recordBtn').textContent = '🎙️ Començar gravació';
+          document.getElementById('recordBtn').classList.remove('recording');
+          stream.getTracks().forEach(t => t.stop());
+        };
+        state.mediaRecorder.start();
+        document.getElementById('recordStatus').textContent = 'Gravant... parla clar i menciona client, concepte i import.';
+        document.getElementById('recordBtn').textContent = '⏹️ Aturar gravació';
+        document.getElementById('recordBtn').classList.add('recording');
+      } catch (error) {
+        toast('No es pot gravar', 'Permet l’accés al micròfon o prova amb Chrome/Edge.');
+        log('ERROR MICRO ← ' + error.message);
+      }
+    }
+
+    function stopRecording() {
+      if (state.mediaRecorder) state.mediaRecorder.stop();
+    }
+
+    function clearRecording() {
+      state.audioBlob = null;
+      state.audioBase64 = null;
+      state.audioChunks = [];
+      document.getElementById('audioPreview').style.display = 'none';
+      document.getElementById('recordStatus').textContent = 'Preparat per gravar.';
+      toast('Gravació esborrada', 'Pots tornar a gravar una nota nova.');
+    }
+
+    function sendVoiceNote() {
+      if (!state.audioBase64) return toast('Falta gravació', 'Primer grava una nota de veu.');
+      return sendToMake('nota_veu', {
+        comment: value('voiceComment'),
+        audio: {
+          filename: 'nota-veu-naturvil-' + Date.now() + '.webm',
+          mime_type: 'audio/webm',
+          base64: state.audioBase64,
+        },
+        expected_flow: 'transcribe_with_ai_then_create_draft_in_odoo',
+      });
+    }
+
+    function addLine(containerId, preset = {}) {
+      const container = document.getElementById(containerId);
+      const div = document.createElement('div');
+      div.className = 'line-item';
+      div.innerHTML = `
+        <div><label>Concepte</label><input class="li-concept" value="${escapeHtml(preset.concept || '')}" placeholder="Mà d’obra, transport, material..." /></div>
+        <div><label>Quant.</label><input class="li-qty" type="number" step="0.01" value="${preset.qty || 1}" /></div>
+        <div><label>Unitat</label><input class="li-unit" value="${escapeHtml(preset.unit || 'ud')}" /></div>
+        <div><label>Preu</label><input class="li-price" type="number" step="0.01" value="${preset.price || 0}" /></div>
+        <button class="btn danger" type="button" onclick="this.closest('.line-item').remove()">×</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function getLines(containerId) {
+      return [...document.querySelectorAll('#' + containerId + ' .line-item')].map(item => ({
+        concept: item.querySelector('.li-concept').value.trim(),
+        quantity: Number(item.querySelector('.li-qty').value || 0),
+        unit: item.querySelector('.li-unit').value.trim(),
+        price_unit: Number(item.querySelector('.li-price').value || 0),
+      })).filter(line => line.concept);
+    }
+
+    async function handleFiles(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      preview.innerHTML = '';
+      [...input.files].forEach(file => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.innerHTML = `<span>${file.name}</span><span>${formatBytes(file.size)}</span>`;
+        preview.appendChild(item);
+      });
+      state.files = input.files.length;
+      updateCounters();
+    }
+
+    async function filesToBase64(inputId) {
+      const input = document.getElementById(inputId);
+      const files = [...input.files];
+      const converted = [];
+      for (const file of files) {
+        converted.push({
+          filename: file.name,
+          mime_type: file.type || 'application/octet-stream',
+          size: file.size,
+          base64: await blobToBase64(file),
+        });
+      }
+      return converted;
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    function fillExample(type) {
+      if (type === 'client') {
+        set('clientName', 'Comunitat Carme Laforet'); set('clientPhone', ''); set('clientEmail', ''); set('clientCity', 'Lleida'); set('clientAddress', 'Carrer Carme Laforet'); set('clientNotes', 'Comunitat de veïns. Facturació mensual de manteniment de jardineria.');
+      }
+      if (type === 'invoice') {
+        set('invoiceClient', 'Comunitat Carme Laforet'); set('invoiceDescription', 'Manteniment de jardineria mensual corresponent al mes en curs.'); set('invoiceTotalIncl', '430');
+        document.getElementById('invoiceLines').innerHTML = ''; addLine('invoiceLines', { concept: 'Manteniment de jardineria mensual', qty: 1, unit: 'ud', price: 355.37 });
+      }
+      if (type === 'quote') {
+        set('quoteClient', 'Albert'); set('quoteLocation', 'Alpicat'); set('quoteTitle', 'Instal·lació de tanca de composite'); set('quoteIntro', 'Subministrament i instal·lació de tanca de composite amb retirada de tanca existent, formació de fonaments i muntatge complet.');
+        document.getElementById('quoteLines').innerHTML = '';
+        addLine('quoteLines', { concept: 'Subministrament de material composite i perfileria', qty: 1, unit: 'ud', price: 3900 });
+        addLine('quoteLines', { concept: 'Mà d’obra instal·lació i accés difícil', qty: 1, unit: 'ud', price: 2800 });
+      }
+      if (type === 'smart') {
+        set('smartCommand', 'Fes factura a Comunitat Carme Laforet pel manteniment de jardineria del mes d’abril. Total 430 € IVA inclòs. Deixa-la com a esborrany a Odoo.');
+      }
+    }
+
+    function value(id) { return document.getElementById(id)?.value?.trim() || ''; }
+    function set(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+    function numeric(id) { const v = Number(value(id)); return Number.isFinite(v) ? v : null; }
+    function escapeHtml(str) { return String(str).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+    function formatBytes(bytes) {
+      if (!bytes) return '0 B';
+      const units = ['B','KB','MB','GB']; let i = 0; let n = bytes;
+      while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+      return n.toFixed(i ? 1 : 0) + ' ' + units[i];
+    }
+    function updateCounters() {
+      document.getElementById('sentCount').textContent = state.sent;
+      document.getElementById('draftCount').textContent = state.drafts;
+      document.getElementById('fileCount').textContent = state.files;
+    }
+    function log(message) {
+      const box = document.getElementById('logBox');
+      if (!box) return;
+      const stamp = new Date().toLocaleTimeString('ca-ES');
+      box.textContent = `[${stamp}] ${message}\n\n` + box.textContent;
+    }
+    function clearLog() { document.getElementById('logBox').textContent = ''; }
+    function toast(title, msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastMsg').textContent = msg || '';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 4300);
+    }
+  </script>
+</body>
+</html>
