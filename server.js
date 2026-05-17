@@ -22,16 +22,34 @@ const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 
 // ── ODOO ──────────────────────────────────────────────────
 async function odooAuth() {
-  const res = await fetch(`${ODOO_URL}/web/session/authenticate`, {
+  const res = await fetch(`${ODOO_URL}/jsonrpc`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      jsonrpc: '2.0', method: 'call', id: 1,
-      params: { db: ODOO_DB, login: ODOO_USER, password: ODOO_API_KEY }
+      jsonrpc: '2.0',
+      method: 'call',
+      params: {
+        service: 'common',
+        method: 'authenticate',
+        args: [ODOO_DB, ODOO_USER, ODOO_API_KEY, {}]
+      },
+      id: Date.now()
     })
   });
+
   const data = await res.json();
-  return data.result?.uid;
+
+  console.log('ODOO AUTH RESPOSTA:', JSON.stringify(data, null, 2));
+
+  if (data.error) {
+    throw new Error(data.error.data?.message || data.error.message || 'Error autenticant Odoo');
+  }
+
+  if (!data.result) {
+    throw new Error('Odoo no retorna UID. Revisa ODOO_DB, ODOO_USER o ODOO_API_KEY.');
+  }
+
+  return data.result;
 }
 
 async function odooCall(model, method, args, kwargs = {}) {
