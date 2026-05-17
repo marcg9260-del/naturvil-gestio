@@ -44,6 +44,7 @@ async function odooCall(model, method, args, kwargs = {}) {
     })
   });
   const data = await res.json();
+console.log('ODOO RESPOSTA COMPLETA:', JSON.stringify(data, null, 2));
   return data.result;
 }
 
