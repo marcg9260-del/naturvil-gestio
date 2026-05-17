@@ -35,19 +35,37 @@ async function odooAuth() {
 }
 
 async function odooCall(model, method, args, kwargs = {}) {
-  const res = await fetch(`${ODOO_URL}/web/dataset/call_kw`, {
+  const uid = await odooAuth();
+
+  const res = await fetch(`${ODOO_URL}/jsonrpc`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      jsonrpc: '2.0', method: 'call', id: 1,
-      params: { model, method, args, kwargs }
+      jsonrpc: '2.0',
+      method: 'call',
+      params: {
+        service: 'object',
+        method: 'execute_kw',
+        args: [ODOO_DB, uid, ODOO_API_KEY, model, method, args, kwargs]
+      },
+      id: Date.now()
     })
   });
+
   const data = await res.json();
-console.log('ODOO RESPOSTA COMPLETA:', JSON.stringify(data, null, 2));
+
+  console.log('ODOO RESPOSTA COMPLETA:', JSON.stringify(data, null, 2));
+
+  if (data.error) {
+    throw new Error(
+      data.error.data?.message ||
+      data.error.message ||
+      'Error desconegut Odoo'
+    );
+  }
+
   return data.result;
 }
-
 // ── CLAUDE ────────────────────────────────────────────────
 async function claudeExtract(prompt, imageBase64 = null, mediaType = null) {
   const content = [];
