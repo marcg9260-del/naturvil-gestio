@@ -81,8 +81,11 @@ console.log('CLIENT REBUT:', JSON.stringify(req.body, null, 2));
     const data = req.body.payload || req.body;
 const { name, email, phone, city } = data;
     await odooAuth();
+    console.log('ODOO AUTH OK');
+ console.log('ENVIANT A ODOO...'); 
     const id = await odooCall('res.partner', 'create', [{ name, email, phone, city, customer_rank: 1 }]);
- console.log('CLIENT CREAT A ODOO ID:', id);
+ console.log('RESPOSTA ODOO:', id);
+    console.log('CLIENT CREAT A ODOO ID:', id);
     res.json({ ok: true, id });
   } catch (e) {
   console.error('ERROR CREANT CLIENT:', e.message);
