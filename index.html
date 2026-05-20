@@ -454,7 +454,14 @@ Accions disponibles:
           <h3>Crear factura esborrany</h3>
           <p class="help">Envia una factura estructurada a Make. Recomanat: crear sempre esborrany a Odoo i validar-la després.</p>
           <div class="row three">
-            <div><label>Client *</label><input id="invoiceClient" placeholder="Nom exacte o aproximat" /></div>
+           <div>
+  <label>Client *</label>
+
+  <select id="invoiceClientId">
+    <option value="">Carregant clients d'Odoo...</option>
+  </select>
+
+</div>
             <div><label>Data factura</label><input id="invoiceDate" type="date" /></div>
             <div><label>IVA</label><select id="invoiceVat"><option value="21">21%</option><option value="10">10%</option><option value="0">0%</option></select></div>
           </div>
@@ -991,6 +998,55 @@ Inventari real:
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 4300);
     }
+    function toast(title, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg || '';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4300);
+}
+
+
+// ENGANXA AQUÍ EL CODI NOU
+
+async function carregarClientsOdoo() {
+  try {
+    const res = await fetch('/api/clients');
+    const data = await res.json();
+
+    if (!data.ok) {
+      console.error('Error carregant clients:', data.error);
+      return;
+    }
+
+    const selects = [
+      'invoiceClientId',
+      'quoteClientId',
+      'recurrentClientId'
+    ];
+
+    selects.forEach(selectId => {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+
+      select.innerHTML = '<option value="">Selecciona client...</option>';
+
+      data.clients.forEach(client => {
+        const option = document.createElement('option');
+        option.value = client.id;
+        option.textContent = `${client.name}${client.city ? ' · ' + client.city : ''}`;
+        select.appendChild(option);
+      });
+    });
+
+  } catch (e) {
+    console.error('Error carregant clients Odoo:', e);
+  }
+}
+
+carregarClientsOdoo();
+
+</script>
   </script>
 </body>
 </html>
