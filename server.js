@@ -110,7 +110,39 @@ async function claudeExtract(prompt, imageBase64 = null, mediaType = null) {
 }
 
 // ── RUTES ─────────────────────────────────────────────────
+// Llistar clients d'Odoo
+app.get('/api/clients', async (req, res) => {
+  try {
 
+    const clients = await odooCall(
+      'res.partner',
+      'search_read',
+      [
+        [['customer_rank', '>', 0]],
+        ['id', 'name', 'phone', 'email', 'city']
+      ],
+      {
+        limit: 200,
+        order: 'name asc'
+      }
+    );
+
+    res.json({
+      ok: true,
+      clients
+    });
+
+  } catch (e) {
+
+    console.error('ERROR LLISTANT CLIENTS:', e.message);
+
+    res.status(500).json({
+      ok: false,
+      error: e.message
+    });
+
+  }
+});
 // Crear client
 app.post('/api/client', async (req, res) => {
   try {
