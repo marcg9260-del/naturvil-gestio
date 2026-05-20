@@ -757,7 +757,7 @@ Inventari real:
     }
 
     function createInvoice() {
-      const client = value('invoiceClient');
+    const client = value('invoiceClientId');
       if (!client) return toast('Falta el client', 'Has d’indicar el client de la factura.');
       return sendToMake('crear_factura', {
         client,
