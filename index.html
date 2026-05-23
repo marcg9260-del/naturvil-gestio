@@ -903,7 +903,14 @@ return enviarFacturaDirecta({
       const div = document.createElement('div');
       div.className = 'line-item';
       div.innerHTML = `
-        <div><label>Concepte</label><input class="li-concept" value="${escapeHtml(preset.concept || '')}" placeholder="Mà d’obra, transport, material..." /></div>
+      <div>
+  <label>Producte</label>
+  <select class="li-product" onchange="selectProduct(this)">
+    <option value="">Selecciona producte...</option>
+    ${state.products.map(p => `<option value="${p.id}" data-price="${p.list_price || 0}" data-name="${escapeHtml(p.name)}">${escapeHtml(p.name)} · ${p.list_price || 0}€</option>`).join('')}
+  </select>
+  <input class="li-concept" type="hidden" value="${escapeHtml(preset.concept || '')}" />
+</div>
         <div><label>Quant.</label><input class="li-qty" type="number" step="0.01" value="${preset.qty || 1}" /></div>
         <div><label>Unitat</label><input class="li-unit" value="${escapeHtml(preset.unit || 'ud')}" /></div>
         <div><label>Preu</label><input class="li-price" type="number" step="0.01" value="${preset.price || 0}" /></div>
@@ -911,7 +918,18 @@ return enviarFacturaDirecta({
       `;
       container.appendChild(div);
     }
+function selectProduct(select) {
+  const item = select.closest('.line-item');
+  const option = select.options[select.selectedIndex];
 
+  const conceptInput = item.querySelector('.li-concept');
+  const priceInput = item.querySelector('.li-price');
+  const unitInput = item.querySelector('.li-unit');
+
+  conceptInput.value = option.dataset.name || '';
+  priceInput.value = option.dataset.price || 0;
+  unitInput.value = 'ud';
+}
     function getLines(containerId) {
       return [...document.querySelectorAll('#' + containerId + ' .line-item')].map(item => ({
         concept: item.querySelector('.li-concept').value.trim(),
@@ -1052,8 +1070,26 @@ async function carregarClientsOdoo() {
     console.error('Error carregant clients Odoo:', e);
   }
 }
+async function carregarProductesOdoo() {
+  try {
+    const res = await fetch('/api/productes');
+    const data = await res.json();
 
+    if (!data.ok) {
+      console.error('Error carregant productes:', data.error);
+      return;
+    }
+
+    state.products = data.products || [];
+
+    console.log('Productes carregats:', state.products.length);
+
+  } catch (e) {
+    console.error('Error carregant productes', e);
+  }
+}
 carregarClientsOdoo();
+carregarProductesOdoo();
 async function enviarFacturaDirecta(payload) {
   try {
     const res = await fetch('/api/factura', {
