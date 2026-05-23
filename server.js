@@ -161,7 +161,50 @@ const { name, email, phone, city } = data;
     res.status(500).json({ ok: false, error: e.message });
   }
 });
+// Llistar productes d'Odoo
+app.get('/api/productes', async (req, res) => {
+  try {
+    const productes = await odooCall('product.product', 'search_read', [
+      [['sale_ok', '=', true]],
+      ['id', 'name', 'list_price', 'default_code', 'type']
+    ], {
+      limit: 200,
+      order: 'name asc'
+    });
 
+    res.json({ ok: true, productes });
+  } catch (e) {
+    console.error('ERROR LLISTANT PRODUCTES:', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Crear producte a Odoo
+app.post('/api/producte', async (req, res) => {
+  try {
+    const data = req.body.payload || req.body;
+
+    const name = data.name || data.nom;
+    const price = Number(String(data.price || data.preu || 0).replace(',', '.'));
+
+    if (!name) {
+      throw new Error('Falta el nom del producte');
+    }
+
+    const id = await odooCall('product.product', 'create', [{
+      name,
+      sale_ok: true,
+      purchase_ok: false,
+      list_price: price,
+      type: data.type || 'service'
+    }]);
+
+    res.json({ ok: true, id });
+  } catch (e) {
+    console.error('ERROR CREANT PRODUCTE:', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
 // Crear factura
 app.post('/api/factura', async (req, res) => {
   try {
