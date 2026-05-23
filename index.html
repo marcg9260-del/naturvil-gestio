@@ -765,7 +765,7 @@ if (!client_id) {
   return toast('Falta el client', 'Has de seleccionar un client');
 }
 
-return sendToMake('crear_factura', {
+return enviarFacturaDirecta({
   client_id,
   client,
         date: value('invoiceDate'),
@@ -775,7 +775,8 @@ return sendToMake('crear_factura', {
         total_iva_inclos: numeric('invoiceTotalIncl'),
         category: value('invoiceCategory'),
         odoo_move_type: 'out_invoice',
-      }, { mode: value('invoiceMode') });
+    mode: value('invoiceMode')
+});
     }
 
     function createQuote() {
@@ -1052,8 +1053,28 @@ async function carregarClientsOdoo() {
 }
 
 carregarClientsOdoo();
+async function enviarFacturaDirecta(payload) {
+  try {
+    const res = await fetch('/api/factura', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
+    const data = await res.json();
+
+    if (!data.ok) {
+      return toast('Resposta amb error', JSON.stringify(data));
+    }
+
+    toast('Enviat correctament', JSON.stringify(data));
+    log('FACTURA ENVIADA → ' + JSON.stringify(payload, null, 2));
+
+  } catch (e) {
+    toast('Error', e.message);
+    console.error(e);
+  }
+}
 </script>
-  </script>
 </body>
 </html>
