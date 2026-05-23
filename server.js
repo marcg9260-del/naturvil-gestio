@@ -165,15 +165,42 @@ const { name, email, phone, city } = data;
 // Crear factura
 app.post('/api/factura', async (req, res) => {
   try {
-    const { partner_id, descripcio, import: imp } = req.body;
-    await odooAuth();
+    console.log('FACTURA REBUDA:', JSON.stringify(req.body, null, 2));
+
+    const data = req.body.payload || req.body;
+
+    const partnerId = Number(data.client_id || data.partner_id);
+    const date = data.date || new Date().toISOString().slice(0, 10);
+    const description = data.description || 'Servei de jardineria';
+    const lines = Array.isArray(data.lines) ? data.lines : [];
+
+    if (!partnerId) {
+      throw new Error('Falta client_id / partner_id');
+    }
+
+    const invoiceLines = lines.length
+      ? lines.map(line => [0, 0, {
+          name: line.description || line.name || description,
+          quantity: Number(line.qty || line.quantity || 1),
+          price_unit: Number(String(line.price || line.price_unit || 0).replace(',', '.')),
+        }])
+      : [[0, 0, {
+          name: description,
+          quantity: 1,
+          price_unit: Number(String(data.amount || data.import || data.total || 0).replace(',', '.')),
+        }]];
+
     const id = await odooCall('account.move', 'create', [{
-      move_type: 'out_invoice',
-      partner_id,
-      invoice_line_ids: [[0, 0, { name: descripcio, price_unit: imp }]]
+      move_type: data.odoo_move_type || 'out_invoice',
+      partner_id: partnerId,
+      invoice_date: date,
+      invoice_line_ids: invoiceLines
     }]);
+
     res.json({ ok: true, id });
+
   } catch (e) {
+    console.error('ERROR CREANT FACTURA:', e.message);
     res.status(500).json({ ok: false, error: e.message });
   }
 });
