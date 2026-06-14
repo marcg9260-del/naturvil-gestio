@@ -12,7 +12,7 @@ export default async (req, context) => {
     const ODOO_URL = 'https://naturvil.odoo.com';
     const ODOO_DB = 'naturvil';
     const ODOO_USER = 'marcgarvil@hotmail.com';
-    const ODOO_KEY = 'b58cb57fdab170a0acbaa674c7247347cb1b09fa';
+    const ODOO_KEY = '2806956948a18b1b6b34c83c7608c3560d105743';
 
     const credentials = btoa(`${ODOO_USER}:${ODOO_KEY}`);
     const body = await req.json();
