@@ -508,7 +508,9 @@ Accions disponibles:
           <h3>Factura recurrent</h3>
           <p class="help">Per comunitats, manteniments mensuals, residències o clients fixes. Make/Odoo haurà de crear o programar la recurrència.</p>
           <div class="row three">
-            <div><label>Client *</label><input id="recClient" placeholder="Comunitat Carme Laforet" /></div>
+            <div><label>Client *</label><select id="recurrentClientId">
+  <option value="">Selecciona client...</option>
+</select></div>
             <div><label>Import total IVA inclòs</label><input id="recTotal" type="number" step="0.01" placeholder="430" /></div>
             <div><label>IVA</label><select id="recVat"><option value="21">21%</option><option value="10">10%</option><option value="0">0%</option></select></div>
           </div>
