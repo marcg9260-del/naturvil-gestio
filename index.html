@@ -897,7 +897,20 @@ return enviarFacturaDirecta({
         expected_flow: 'transcribe_with_ai_then_create_draft_in_odoo',
       });
     }
+function actualitzarDesplegablesProductes() {
+  document.querySelectorAll('.li-product').forEach(select => {
+    select.innerHTML = '<option value="">Selecciona producte...</option>';
 
+    state.products.forEach(p => {
+      const option = document.createElement('option');
+      option.value = p.id;
+      option.dataset.price = p.list_price || 0;
+      option.dataset.name = p.name || '';
+      option.textContent = `${p.name} · ${p.list_price || 0}€`;
+      select.appendChild(option);
+    });
+  });
+}
     function addLine(containerId, preset = {}) {
       const container = document.getElementById(containerId);
       const div = document.createElement('div');
@@ -917,7 +930,7 @@ return enviarFacturaDirecta({
         <button class="btn danger" type="button" onclick="this.closest('.line-item').remove()">×</button>
       `;
       container.appendChild(div);
-    }
+      actualitzarDesplegablesProductes();
 function selectProduct(select) {
   const item = select.closest('.line-item');
   const option = select.options[select.selectedIndex];
@@ -1081,7 +1094,7 @@ async function carregarProductesOdoo() {
     }
 
     state.products = data.products || [];
-
+    actualitzarDesplegablesProductes();
     console.log('Productes carregats:', state.products.length);
 
   } catch (e) {
