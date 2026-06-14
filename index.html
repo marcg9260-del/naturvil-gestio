@@ -793,20 +793,27 @@ return enviarFacturaDirecta({
     }
 
     function createRecurring() {
-      const client = value('recClient');
-      if (!client) return toast('Falta el client', 'Has d’indicar el client recurrent.');
-      return sendToMake('crear_recurrent', {
-        client,
-        total_iva_inclos: numeric('recTotal'),
-        vat: Number(value('recVat') || 21),
-        frequency: value('recFrequency'),
-        invoice_day: Number(value('recDay') || 30),
-        start_date: value('recStart'),
-        concept: value('recConcept'),
-        notes: value('recNotes'),
-      });
-    }
+  const clientSelect = document.getElementById('recurrentClientId');
+  const client_id = Number(clientSelect?.value || 0);
+  const client = clientSelect?.options[clientSelect.selectedIndex]?.textContent || '';
 
+  if (!client_id) {
+    return toast('Falta el client', 'Has de seleccionar un client recurrent');
+  }
+
+  return sendToMake('crear_recurrent', {
+    client_id,
+    client,
+    total_iva_inclos: numeric('recTotal'),
+    vat: Number(value('recVat') || 21),
+    frequency: value('recFrequency'),
+    invoice_day: Number(value('recDay') || 1),
+    start_date: value('recStart'),
+    concept: value('recConcept') || 'Manteniment de jardineria mensual',
+    notes: value('recNotes'),
+    mode: 'draft'
+  });
+}
     async function createExpense() {
       const files = await filesToBase64('expenseFiles');
       state.files += files.length;
