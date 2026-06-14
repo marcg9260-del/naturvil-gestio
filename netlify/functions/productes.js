@@ -1,38 +1,74 @@
 export default async (req, context) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type' }
-    });
-  }
   try {
-const ODOO_URL = process.env.odoo_url;
-const ODOO_DB = process.env.odoo_db;
-const ODOO_USER = process.env.odoo_user;
-const ODOO_KEY = process.env.odoo_api_key;
+    const ODOO_URL = process.env.odoo_url;
+    const ODOO_DB = process.env.odoo_db;
+    const ODOO_USER = process.env.odoo_user;
+    const ODOO_KEY = process.env.odoo_api_key;
 
-    const authRes = await fetch(`${ODOO_URL}/web/session/authenticate`, {
+    const authRes = await fetch(`${ODOO_URL}/jsonrpc`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: 1, params: { db: ODOO_DB, login: ODOO_USER, password: ODOO_KEY } })
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'call',
+        params: {
+          service: 'common',
+          method: 'authenticate',
+          args: [ODOO_DB, ODOO_USER, ODOO_KEY, {}]
+        },
+        id: Date.now()
+      })
     });
-    const cookie = authRes.headers.get('set-cookie');
-    const authData = await authRes.json();
-    if (!authData.result?.uid) throw new Error('Auth fallida');
 
-    const res = await fetch(`${ODOO_URL}/web/dataset/call_kw`, {
+    const authData = await authRes.json();
+    const uid = authData.result;
+
+    if (!uid) throw new Error('Auth fallida');
+
+    const res = await fetch(`${ODOO_URL}/jsonrpc`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Cookie': cookie || '' },
-      body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: 2, params: { model: 'product.product', method: 'search_read', args: [[['sale_ok', '=', true]]], kwargs: { fields: ['id', 'name', 'list_price', 'uom_id'], limit: 200 } } })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'call',
+        params: {
+          service: 'object',
+          method: 'execute_kw',
+          args: [
+            ODOO_DB,
+            uid,
+            ODOO_KEY,
+            'product.product',
+            'search_read',
+            [[['sale_ok', '=', true]]],
+            {
+              fields: ['id', 'name', 'list_price', 'default_code', 'type'],
+              limit: 200,
+              order: 'name asc'
+            }
+          ]
+        },
+        id: Date.now()
+      })
     });
+
     const data = await res.json();
-    return new Response(JSON.stringify({ ok: true, products: data.result || [] }), {
-      status: 200, headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
+
+    return new Response(JSON.stringify({
+      ok: true,
+      products: data.result || []
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
     });
+
   } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: err.message }), {
-      status: 500, headers: { 'Access-Control-Allow-Origin': '*' }
+    return new Response(JSON.stringify({
+      ok: false,
+      error: err.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
     });
   }
 };
-
-export const config = { path: '/api/productes' };
