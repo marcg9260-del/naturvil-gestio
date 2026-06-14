@@ -5,10 +5,10 @@ export default async (req, context) => {
     });
   }
   try {
-    const ODOO_URL = 'https://naturvil.odoo.com';
-    const ODOO_DB = 'naturvil';
-    const ODOO_USER = 'marcgarvil@hotmail.com';
-    const ODOO_KEY = '2806956948a18b1b6b34c83c7608c3560d105743';
+const ODOO_URL = process.env.odoo_url;
+const ODOO_DB = process.env.odoo_db;
+const ODOO_USER = process.env.odoo_user;
+const ODOO_KEY = process.env.odoo_api_key;
 
     const authRes = await fetch(`${ODOO_URL}/web/session/authenticate`, {
       method: 'POST',
