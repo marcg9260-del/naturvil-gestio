@@ -1095,7 +1095,7 @@ async function carregarProductesOdoo() {
       return;
     }
 
-    state.products = data.products || [];
+   state.products = data.products || data.productes || data.result || (Array.isArray(data) ? data : []);
     actualitzarDesplegablesProductes();
     console.log('Productes carregats:', state.products.length);
 
