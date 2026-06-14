@@ -906,7 +906,8 @@ function actualitzarDesplegablesProductes() {
       option.value = p.id;
       option.dataset.price = p.list_price || 0;
       option.dataset.name = p.name || '';
-      option.textContent = `${p.name} · ${p.list_price || 0}€`;
+      option.textContent = `${p.name} · $
+        {p.list_price || 0}€`;
       select.appendChild(option);
     });
   });
