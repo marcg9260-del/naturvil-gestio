@@ -23,7 +23,17 @@ export default async (req, context) => {
     const authData = await authRes.json();
     const uid = authData.result;
 
-    if (!uid) throw new Error('Auth fallida');
+    if (!uid) {
+  throw new Error(JSON.stringify({
+    error: 'Auth fallida',
+    odoo_url: ODOO_URL,
+    odoo_db: ODOO_DB,
+    odoo_user: ODOO_USER,
+    te_api_key: !!ODOO_KEY,
+    mida_api_key: ODOO_KEY ? ODOO_KEY.length : 0,
+    resposta_odoo: authData
+  }));
+}
 
     const res = await fetch(`${ODOO_URL}/jsonrpc`, {
       method: 'POST',
