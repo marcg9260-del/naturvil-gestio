@@ -1,11 +1,7 @@
 export default async (req, context) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      }
+      headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type' }
     });
   }
   try {
@@ -14,34 +10,27 @@ export default async (req, context) => {
     const ODOO_USER = 'marcgarvil@hotmail.com';
     const ODOO_KEY = 'b58cb57fdab170a0acbaa674c7247347cb1b09fa';
 
-    const credentials = btoa(`${ODOO_USER}:${ODOO_KEY}`);
-
-    const prodRes = await fetch(`${ODOO_URL}/web/dataset/call_kw`, {
+    const authRes = await fetch(`${ODOO_URL}/web/session/authenticate`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${credentials}`
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0', method: 'call', id: 1,
-        params: {
-          model: 'product.product',
-          method: 'search_read',
-          args: [[['sale_ok', '=', true]]],
-          kwargs: { fields: ['id', 'name', 'list_price', 'uom_id'], limit: 200 }
-        }
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: 1, params: { db: ODOO_DB, login: ODOO_USER, password: ODOO_KEY } })
     });
-    const prodData = await prodRes.json();
-    if (prodData.error) throw new Error(prodData.error.data?.message || prodData.error.message);
-    return new Response(JSON.stringify({ ok: true, products: prodData.result || [] }), {
-      status: 200,
-      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
+    const cookie = authRes.headers.get('set-cookie');
+    const authData = await authRes.json();
+    if (!authData.result?.uid) throw new Error('Auth fallida');
+
+    const res = await fetch(`${ODOO_URL}/web/dataset/call_kw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Cookie': cookie || '' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: 2, params: { model: 'product.product', method: 'search_read', args: [[['sale_ok', '=', true]]], kwargs: { fields: ['id', 'name', 'list_price', 'uom_id'], limit: 200 } } })
+    });
+    const data = await res.json();
+    return new Response(JSON.stringify({ ok: true, products: data.result || [] }), {
+      status: 200, headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
     });
   } catch (err) {
     return new Response(JSON.stringify({ ok: false, error: err.message }), {
-      status: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' }
+      status: 500, headers: { 'Access-Control-Allow-Origin': '*' }
     });
   }
 };
