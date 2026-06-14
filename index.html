@@ -1038,7 +1038,7 @@ function selectProduct(select) {
 
 async function carregarClientsOdoo() {
   try {
-    const res = await fetch('/.netlify/functions/clients');
+    const res = await fetch('/api/clients');
     const data = await res.json();
 
     if (!data.ok) {
@@ -1072,7 +1072,7 @@ async function carregarClientsOdoo() {
 }
 async function carregarProductesOdoo() {
   try {
-    const res = await fetch('/.netlify/functions/productes');
+    const res = await fetch('/api/productes');
     const data = await res.json();
 
     if (!data.ok) {
@@ -1092,7 +1092,7 @@ carregarClientsOdoo();
 carregarProductesOdoo();
 async function enviarFacturaDirecta(payload) {
   try {
-    const res = await fetch('/.netlify/functions/factura', {
+    const res = await fetch('/api/factura', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
